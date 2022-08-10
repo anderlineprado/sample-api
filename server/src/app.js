@@ -10,6 +10,4 @@ app.get('/', (req, res) => {
     res.send("Sup")
 })
 
-console.log(await database.query('select now()'))
-
 export default app
