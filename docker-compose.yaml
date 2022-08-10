@@ -1,0 +1,70 @@
+version: '3.7'
+services:
+  server-sample:
+    container_name: server-sample
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    volumes:
+      - ./server:/usr/src/app
+    ports:
+      - "3000:3000"
+    networks:
+      - net-sample
+    depends_on:
+      - nginx-sample
+      - data-sample
+      - cache-sample
+  
+  nginx-sample:
+    container_name: nginx-sample
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    networks:
+      - net-sample
+
+  cache-sample:
+    container_name: cache-sample
+    hostname: cache-sample
+    image: redis:7.0.3
+    command: --port 6379
+    volumes:
+      - ./cache:/data
+    ports:
+      - "6380:6380"
+    networks:
+      - net-sample
+
+  data-sample:
+    image: postgres:13.5
+    container_name: data-sample
+    hostname: data-sample
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    restart: on-failure
+    volumes:
+      - ${PWD}/postgres/data:/var/lib/postgresql/data
+    networks:
+      - net-sample
+  
+  sgbd-sample:
+    image: adminer
+    container_name: sgbd-sample
+    links: 
+      - data-sample
+    ports:
+      - 8081:8080
+    networks:
+      - net-sample
+    depends_on:
+      - data-sample
+  
+networks:
+  net-sample:
+    driver: bridge
